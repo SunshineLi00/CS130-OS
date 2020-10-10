@@ -4,7 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
-
+#include "fixed_point.h"
 /* States in a thread's life cycle. */
 enum thread_status
   {
@@ -89,10 +89,14 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-    int block_time;                     /* time for sleep ********* change*/ 
+    int block_time;                     /* time for sleep ********* change*/
+    int initial_priority;    		/* initial priority ********* change*/
+    struct list locks; 			/* Locks thread is holding ********* change*/   
+    struct lock *waiting;               /* waiting list ********* change*/
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-
+    int nice;
+    fixed_t recent_cpu;
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -111,7 +115,9 @@ void thread_init (void);
 void thread_start (void);
 
 void thread_tick (void);
-bool pri_compare (const struct list_elem *a,const struct list_elem *b,void *aux UNUSED);
+/* change */
+bool pri_compare (const struct list_elem *a,const struct list_elem *b,void *aux UNUSED);/* compare priority */
+bool lock_compare (const struct list_elem *a, const struct list_elem *b, void *aux);/* compare lock priority */
 void thread_print_stats (void);
 
 typedef void thread_func (void *aux);
@@ -123,6 +129,11 @@ void thread_unblock (struct thread *);
 struct thread *thread_current (void);
 tid_t thread_tid (void);
 const char *thread_name (void);
+/* change */
+void update_priority (struct thread *t);/* update priority */
+void remove_lock (struct lock *lock);/* remove a lock */
+void donate_priority (struct thread *t);/* donate priority */
+void hold_lock(struct lock *lock);/* hold a lock */
 
 void thread_exit (void) NO_RETURN;
 void thread_yield (void);
@@ -141,3 +152,9 @@ int thread_get_load_avg (void);
 
 void check_block (struct thread *t); /* check if theread can be unblocked******change */
 #endif /* threads/thread.h */
+
+/*we add for mlfqs*/
+void thread_mlfqs_increase_recent_cpu(void);
+void thread_mlfqs_update_load_avg(void);
+void thread_mlfqs_update_recent_cpu (struct thread *);
+void thread_mlfqs_update_priority (struct thread*);
