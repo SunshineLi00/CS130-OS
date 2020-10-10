@@ -61,7 +61,7 @@ void
 sema_down (struct semaphore *sema) 
 {
   enum intr_level old_level;
-
+  struct thread *t = thread_current ();
   ASSERT (sema != NULL);
   ASSERT (!intr_context ());
 
@@ -69,7 +69,7 @@ sema_down (struct semaphore *sema)
   while (sema->value == 0) 
     {
       /* change  maintain order */
-      list_insert_ordered (&sema->waiters, &thread_current ()->elem, pri_compare, NULL);
+      list_insert_ordered (&sema->waiters, &t->elem, pri_compare, NULL);
       thread_block ();
     }
   sema->value--;
@@ -196,7 +196,7 @@ lock_init (struct lock *lock)
 void
 lock_acquire (struct lock *lock)
 {
-  struct thread *now = thread_current ();
+  struct thread *t = thread_current ();
   struct lock *locks;
   enum intr_level old_level;
   ASSERT (lock != NULL);
@@ -204,11 +204,11 @@ lock_acquire (struct lock *lock)
   ASSERT (!lock_held_by_current_thread (lock));
   if (lock->holder != NULL && !thread_mlfqs)
   {
-    now->waiting = lock;
+    t->waiting = lock;
     locks = lock;
-    while (locks && now->priority > locks->max)
+    while (locks && t->priority > locks->max)
     {
-      locks->max = now->priority;
+      locks->max = t->priority;
       donate_priority (locks->holder);
       locks = locks->holder->waiting;
     }
@@ -216,14 +216,23 @@ lock_acquire (struct lock *lock)
 
   sema_down (&lock->semaphore);
   old_level = intr_disable ();
-  now = thread_current ();
+  t = thread_current ();
   if (!thread_mlfqs)
   {
-    now->waiting = NULL;
-    lock->max = now->priority;
-    hold_lock (lock);
+    t->waiting = NULL;
+    lock->max = t->priority;
+    /* hold a lock */
+    enum intr_level old_level2 = intr_disable ();
+    struct thread *t2 = thread_current ();
+    list_insert_ordered (&t2->locks, &lock->elem, lock_compare, NULL);
+    if (lock->max > t2->priority)
+    {
+      t2->priority = lock->max;
+      thread_yield ();
+    }
+    intr_set_level (old_level2);
   }
-  lock->holder = now;
+  lock->holder = t;
   intr_set_level (old_level);
 }
 
@@ -256,7 +265,14 @@ void
 lock_release (struct lock *lock) 
 {
   /* change */
-  if (!thread_mlfqs)    remove_lock (lock); /* judge mlfqs */
+  if (!thread_mlfqs)    
+  {
+  /* release a lock */
+   enum intr_level old_level = intr_disable ();
+   list_remove (&lock->elem);
+   update_priority (thread_current ());
+   intr_set_level (old_level);
+  }
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
 

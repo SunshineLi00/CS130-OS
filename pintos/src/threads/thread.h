@@ -92,7 +92,7 @@ struct thread
     int block_time;                     /* time for sleep ********* change*/
     int initial_priority;    		/* initial priority ********* change*/
     struct list locks; 			/* Locks thread is holding ********* change*/   
-    struct lock *waiting;               /* waiting list ********* change*/
+    struct lock *waiting;               /* thread waiting the locks ********* change*/
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
     int nice;
@@ -131,9 +131,8 @@ tid_t thread_tid (void);
 const char *thread_name (void);
 /* change */
 void update_priority (struct thread *t);/* update priority */
-void remove_lock (struct lock *lock);/* remove a lock */
 void donate_priority (struct thread *t);/* donate priority */
-void hold_lock(struct lock *lock);/* hold a lock */
+
 
 void thread_exit (void) NO_RETURN;
 void thread_yield (void);
@@ -150,11 +149,12 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-void check_block (struct thread *t); /* check if theread can be unblocked******change */
+void check_block (struct thread *t,void *); /* check if theread can be unblocked******change */
 #endif /* threads/thread.h */
 
 /*we add for mlfqs*/
 void thread_mlfqs_increase_recent_cpu(void);
 void thread_mlfqs_update_load_avg(void);
-void thread_mlfqs_update_recent_cpu (struct thread *);
+void thread_mlfqs_update_recent_cpu (struct thread *,void *);
 void thread_mlfqs_update_priority (struct thread*);
+
