@@ -72,6 +72,7 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
+fixed_t load_avg;
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
    general and it is possible in this case only because loader.S
@@ -419,7 +420,7 @@ thread_get_priority (void)
 }
 
 /* Sets the current thread's nice value to NICE. */
-void
+/*void
 thread_set_nice (int nice UNUSED) 
 {
   /* Not yet implemented. */
@@ -440,7 +441,7 @@ thread_get_load_avg (void)
   /* Not yet implemented. */
   return 0;
 }
-
+*/
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
@@ -681,7 +682,6 @@ int thread_get_nice (void){
    return thread_current ()->nice;
 }
 
-fixed_t load_avg;
 int thread_get_recent_cpu (void){
   return fixed_integer_round(fixed_mult_to_left(thread_current ()->recent_cpu, 100));
 }
@@ -692,7 +692,7 @@ int thread_get_load_avg (void){
 }
 void thread_mlfqs_increase_recent_cpu(void){
     ASSERT(thread_mlfqs);
-    ASSERT(intr_context);
+    /*ASSERT(intr_context);*/
 
     struct thread *current_thread=thread_current();
     
@@ -707,7 +707,7 @@ void thread_mlfqs_increase_recent_cpu(void){
 }
 void  thread_mlfqs_update_load_avg(void){
   ASSERT(thread_mlfqs);
-  ASSERT(intr_context);
+  /*ASSERT(intr_context);*/
   int ready_threads=0;
   if(thread_current()!=idle_thread) ready_threads++;
   ready_threads+=list_size(&ready_list);
@@ -729,7 +729,7 @@ void thread_mlfqs_update_priority (struct thread*t){
     if(t==idle_thread)
      return;
     ASSERT(thread_mlfqs);
-    ASSERT(intr_context);
+    /*ASSERT(intr_context);*/
     
     int temp;
     /*a temporary variable*/
