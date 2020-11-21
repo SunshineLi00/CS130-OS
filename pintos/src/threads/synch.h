@@ -16,16 +16,12 @@ void sema_down (struct semaphore *);
 bool sema_try_down (struct semaphore *);
 void sema_up (struct semaphore *);
 void sema_self_test (void);
-/*  compare condvar ***change */
-bool cond_compare (const struct list_elem *a, const struct list_elem *b, void *aux);
+
 /* Lock. */
 struct lock 
   {
     struct thread *holder;      /* Thread holding lock (for debugging). */
     struct semaphore semaphore; /* Binary semaphore controlling access. */
-    /* change */
-    struct list_elem elem;      /* list element for priority donation */
-    int max;                    /* store max priority for priority donation */  
   };
 
 void lock_init (struct lock *);
