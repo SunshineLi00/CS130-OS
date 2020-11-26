@@ -4,9 +4,12 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
-#include "threads/synch.h"
-#include "vm/page.h"
-
+#include "synch.h"
+struct file_d {
+    int fd;
+    struct list_elem elem;
+    struct file *file;
+    };
 /* States in a thread's life cycle. */
 enum thread_status
   {
@@ -95,29 +98,29 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
-		int64_t ticks_sleep;                /* Record how much time to sleep. */
-
-    struct list fn_list;                /* File desc list */
-    struct child_process *child;        /* Strore self-as-child info */
-    struct list child_list;             /* List of child process */
-    struct semaphore wait;              /* Wait for child to load */
-    struct file *file;                  /* Executing file */
-
-		uint8_t *esp;
-    struct list mmap_list;             	/* List of struct mmap_node. */
-    struct spt *spt;   									/* Supplemental page table. */
-
-
-
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
+    /*realize process exit information*/
+    int exit_inf;
+    
+    struct list_elem child_elem;        /* list element. */
+    struct list fd_list;                /* fd list */
+    bool already_wait;        /* strore self-as-child info */
+    struct list child_list;             /* list of child process */
+    struct thread *parent;
+    struct semaphore wait,wait_c;              /* wait for load */
+    struct file *file;                  /* the elf file */
+    struct list child_f; 
+    bool finished;
 #endif
 
+    struct list child_threads;
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
-
+struct thread *
+find_thread (tid_t );
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
@@ -153,9 +156,5 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
-
-void check_sleep (struct thread *t, void *aux UNUSED);
-
-struct thread *get_thread (tid_t tid);
 
 #endif /* threads/thread.h */
