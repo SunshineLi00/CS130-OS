@@ -13,6 +13,7 @@
 #include "devices/input.h"
 #include "threads/palloc.h"
 #include "threads/synch.h"
+#include "process.h"
 static void syscall_handler (struct intr_frame *);
 
 void halt (void);
@@ -46,14 +47,16 @@ static void
 syscall_handler (struct intr_frame *f UNUSED) 
 {
   int *syscall_value = (int *)f->esp;
-  is_valid_addr (syscall_value);
+  //printf("address%0x",syscall_value);
+  is_valid_block((void *)syscall_value,3);
+  //is_valid_addr (syscall_value);
   if (*syscall_value < 0 || *syscall_value > 19)
     exit(-1);
   
   int *sys_1 = (int *)f->esp + 1;
   int *sys_2 = (int *)f->esp + 2;
   int *sys_3 = (int *)f->esp + 3;
-
+  is_valid_block((void *)sys_1,0);
   switch(*syscall_value){
      case SYS_HALT:
     {
@@ -69,7 +72,7 @@ syscall_handler (struct intr_frame *f UNUSED)
     case SYS_EXEC:
     {
       is_valid_block ((void *)sys_1, 3);
-      is_valid_block ((void *)(*sys_1), 0);
+      is_valid_block ((void *)(*sys_1), 1);
       f->eax = exec ((const char*)(*sys_1));
       break;
     }
@@ -153,10 +156,11 @@ syscall_handler (struct intr_frame *f UNUSED)
 void
 is_valid_addr (const void *addr)
 {
-  if (addr == NULL || addr<=0x08008400 || !is_user_vaddr (addr) || pagedir_get_page (thread_current ()->pagedir, addr) == NULL)
+  if (addr == NULL /*|| addr<=0x08008400*/ || !is_user_vaddr (addr) || pagedir_get_page (thread_current ()->pagedir, addr) == NULL)
     {
       if (lock_held_by_current_thread (&sys_lock))
         lock_release (&sys_lock); /* release the lock */
+        //printf("%0x",addr);
       exit (-1);
     }
 }
@@ -284,18 +288,20 @@ int filesize (int fd){
 struct file_d *
 find_fd (int fd)
 {
-  struct file_d *file_fd = (struct file_d *) malloc(sizeof(struct file_d));
+  struct file_d *file_fd =NULL;//(struct file_d *) malloc(sizeof(struct file_d));
   struct list*  fd_list = &(thread_current ()->fd_list);
   struct list_elem *e;
   /* Search file_fd in file_list */
   if (list_empty(fd_list ))
-    return NULL;
+  { // free(file_fd);
+    return NULL;}
   for(e = list_begin (fd_list ); e != list_end (fd_list ); e = list_next (e))
     {
       file_fd = list_entry(e, struct file_d, elem);
       if(file_fd->fd == fd)
         return file_fd;
     }
+   // free(file_fd);
      // printf("survive");
   return NULL;
 }
@@ -355,11 +361,11 @@ int write (int fd, const void *buffer, unsigned size){
       lock_release (&sys_lock);
       return size;
     }
-  if(fd==NULL)
+  /*if(fd==NULL)
   { 
     lock_release (&sys_lock);
     return -1;
-    }
+    }*/
   struct file_d *file_fd = find_fd (fd);
   // printf("survive");
   if (file_fd == NULL || file_fd->file == NULL)
@@ -419,6 +425,6 @@ lock_acquire (&sys_lock);/* acquire lock */
     }
   file_close(file_fd->file);
   list_remove(&file_fd->elem);
-  palloc_free_page (file_fd);
+  //palloc_free_page (file_fd);
   lock_release (&sys_lock);/* release  lock */
 }

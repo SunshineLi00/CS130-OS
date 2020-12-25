@@ -111,6 +111,8 @@ struct thread
     struct thread *parent;
     struct semaphore wait,wait_c;              /* wait for load */
     struct file *file;                  /* the elf file */
+    struct list child_f; 
+    bool finished;
 #endif
 
     struct list child_threads;
@@ -156,4 +158,3 @@ int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
 #endif /* threads/thread.h */
-

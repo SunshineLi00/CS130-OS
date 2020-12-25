@@ -475,6 +475,8 @@ init_thread (struct thread *t, const char *name, int priority)
   (t->child_elem).prev = NULL;
   t->already_wait=false;
   t->parent=NULL;
+  t->finished=false;
+  list_init(&t->child_f);
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
