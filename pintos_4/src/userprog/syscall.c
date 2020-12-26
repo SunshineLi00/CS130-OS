@@ -14,6 +14,7 @@
 #include "threads/palloc.h"
 #include "threads/synch.h"
 #include "process.h"
+
 static void syscall_handler (struct intr_frame *);
 
 void halt (void);

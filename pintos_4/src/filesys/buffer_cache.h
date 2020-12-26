@@ -17,9 +17,9 @@ struct buffer_entry
     void *data;       
 };
 
-bool buffer_cache_read (block_sector_t sector_idx, void *buffer, 
+bool buffer_cache_read(block_sector_t sector_idx, void *buffer, 
               off_t buffer_ofs, int chunk_size, int sector_ofs);
-bool buffer_cache_write (block_sector_t sector_idx, void *buffer, 
+bool buffer_cache_write(block_sector_t sector_idx, void *buffer, 
                off_t buffer_ofs, int chunk_size, int sector_ofs);
 void buffer_cache_init (void);
 void buffer_cache_term (void);

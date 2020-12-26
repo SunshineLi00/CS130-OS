@@ -5,6 +5,8 @@
 #include <list.h>
 #include <stdint.h>
 #include "synch.h"
+#include "filesys/directory.h"
+
 struct file_d {
     int fd;
     struct list_elem elem;
@@ -112,6 +114,7 @@ struct thread
     struct semaphore wait,wait_c;              /* wait for load */
     struct file *file;                  /* the elf file */
     struct list child_f; 
+    struct dir *cur_dir;
     bool finished;
 #endif
 

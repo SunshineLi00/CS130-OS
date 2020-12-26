@@ -7,9 +7,9 @@
 
 /* Maximum length of a file name component.tories. */
 bool dir_create (block_sector_t sector, size_t entry_cnt);
-struct dir *dir_open (struct inode *);
-struct dir *dir_open_root (void);
-   This is the traditional UNIX maximum length.
+//struct dir *dir_open (struct inode *);
+struct dir *dir_op_root (void);
+   /*This is the traditional UNIX maximum length.
    After directories are implemented, this maximum length may be
    retained, but much longer full path names must be allowed. */
 #define NAME_MAX 14
