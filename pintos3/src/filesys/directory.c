@@ -5,6 +5,7 @@
 #include "filesys/filesys.h"
 #include "filesys/inode.h"
 #include "threads/malloc.h"
+#include "filesys/buffer_cache.h"
 
 /* A directory. */
 struct dir 
@@ -26,7 +27,7 @@ struct dir_entry
 bool
 dir_create (block_sector_t sector, size_t entry_cnt)
 {
-  return inode_create (sector, entry_cnt * sizeof (struct dir_entry));
+  return inode_create (sector, entry_cnt * sizeof (struct dir_entry), 1);
 }
 
 /* Opens and returns the directory for the given INODE, of which
@@ -38,7 +39,7 @@ dir_open (struct inode *inode)
   if (inode != NULL && dir != NULL)
     {
       dir->inode = inode;
-      dir->pos = 0;
+      dir->pos = sizeof (struct dir_entry);
       return dir;
     }
   else
@@ -191,6 +192,9 @@ dir_remove (struct dir *dir, const char *name)
 
   ASSERT (dir != NULL);
   ASSERT (name != NULL);
+
+  if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
+      goto done;
 
   /* Find directory entry. */
   if (!lookup (dir, name, &e, &ofs))

@@ -5,7 +5,10 @@
 #include <stddef.h>
 #include "devices/block.h"
 
-/* Maximum length of a file name component.
+/* Maximum length of a file name component.tories. */
+bool dir_create (block_sector_t sector, size_t entry_cnt);
+struct dir *dir_open (struct inode *);
+struct dir *dir_open_root (void);
    This is the traditional UNIX maximum length.
    After directories are implemented, this maximum length may be
    retained, but much longer full path names must be allowed. */
@@ -13,10 +16,7 @@
 
 struct inode;
 
-/* Opening and closing directories. */
-bool dir_create (block_sector_t sector, size_t entry_cnt);
-struct dir *dir_open (struct inode *);
-struct dir *dir_open_root (void);
+/* Opening and closing direc
 struct dir *dir_reopen (struct dir *);
 void dir_close (struct dir *);
 struct inode *dir_get_inode (struct dir *);
